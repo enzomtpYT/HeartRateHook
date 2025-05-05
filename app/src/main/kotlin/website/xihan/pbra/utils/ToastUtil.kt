@@ -8,26 +8,26 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
 /**
- * @项目名 : QDReaderHook
- * @作者 : MissYang
- * @创建时间 : 2025/2/25 16:58
- * @介绍 :
+ * @Project : QDReaderHook
+ * @Author : MissYang
+ * @Created : 2025/2/25 16:58
+ * @Description :
  */
 object ToastUtil : KoinComponent {
 
     private val context by inject<Context>()
     private var toast: Toast? = null
 
-    /** 取消吐司显示 */
+    /** Cancel toast display */
     @JvmStatic
     fun cancel() {
         toast?.cancel()
     }
 
     /**
-     * 显示吐司
-     * @param msg 吐司内容
-     * @param duration 吐司显示时长 0 短时间显示 1 长时间显示
+     * Show toast
+     * @param msg Toast content
+     * @param duration Toast display duration 0 short display time 1 long display time
      */
     @SuppressLint("ShowToast")
     private fun showToast(msg: CharSequence?, duration: Int) {
@@ -40,32 +40,32 @@ object ToastUtil : KoinComponent {
     }
 
     /**
-     * 短时间显示的吐司
-     * @param msg 吐司内容
+     * Short display toast
+     * @param msg Toast content
      */
     fun show(@StringRes msg: Int) {
         showToast(context.getString(msg), 0)
     }
 
     /**
-     * 短时间显示的吐司
-     * @param msg 吐司内容
+     * Short display toast
+     * @param msg Toast content
      */
     fun show(msg: CharSequence?) {
         showToast(msg, 0)
     }
 
     /**
-     * 长时间显示的吐司
-     * @param msg 吐司内容
+     * Long display toast
+     * @param msg Toast content
      */
     fun longShow(@StringRes msg: Int) {
         longShow(context.getString(msg))
     }
 
     /**
-     * 长时间显示的吐司
-     * @param msg 吐司内容
+     * Long display toast
+     * @param msg Toast content
      */
     private fun longShow(msg: CharSequence?) {
         showToast(msg, 1)

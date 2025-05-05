@@ -84,12 +84,32 @@ object Ktor : KoinComponent {
 
 
     fun updateHeartRate(heartRate: Int) = ioThread {
-        if (getStatus()) return@ioThread
-        val url = if (reportIndex == 0) baseUrl else "${getSelectedBaseUrl()}/receive_data"
-        Log.d("更新心率: $heartRate")
-        httpClient.post(url) {
-            contentType(ContentType.Application.Json)
-            setBody(HeartRateModel(HeartRateModel.DataModel(heartRate)))
+        // Don't send if not logged in OR URL is blank
+        if (!isLogin || baseUrl.isBlank()) {
+            Log.e("Heart rate not sent: isLogin=$isLogin, baseUrl=$baseUrl")
+            return@ioThread
+        }
+        
+        val url = if (reportIndex == 0) {
+            // Ensure baseUrl starts with http/https
+            if (!baseUrl.startsWith("http://") && !baseUrl.startsWith("https://")) {
+                "https://$baseUrl"
+            } else {
+                baseUrl
+            }
+        } else {
+            "${getSelectedBaseUrl()}/receive_data"
+        }
+        
+        Log.d("Sending heart rate: $heartRate to URL: $url")
+        try {
+            val response = httpClient.post(url) {
+                contentType(ContentType.Application.Json)
+                setBody(HeartRateModel(HeartRateModel.DataModel(heartRate)))
+            }
+            Log.d("Server response: ${response.status}, ${response.bodyAsText()}")
+        } catch (e: Exception) {
+            Log.e("Failed to send heart rate: ${e.message}")
         }
     }
 

@@ -39,10 +39,10 @@ import java.lang.ref.WeakReference
 
 
 /**
- * @项目名 : QDReaderHook
- * @作者 : MissYang
- * @创建时间 : 2025/1/4 15:42
- * @介绍 :
+ * @Project : QDReaderHook
+ * @Author : MissYang
+ * @Created : 2025/1/4 15:42
+ * @Description :
  */
 class HookEntry : IXposedHookLoadPackage {
 
@@ -100,7 +100,11 @@ class HookEntry : IXposedHookLoadPackage {
                                                 startPeriodicSending()
                                             }
                                         }
-                                        it.getIntFieldOrNull("hr")?.let(Ktor::sendHeartRate)
+                                        val heartRate = it.getIntFieldOrNull("hr")
+                                        if (heartRate != null && heartRate > 0) {
+                                            Log.d("Detected heart rate outside sport: $heartRate")
+                                            Ktor.sendHeartRate(heartRate)
+                                        }
                                     }
                                 }
                             }
@@ -122,11 +126,11 @@ class HookEntry : IXposedHookLoadPackage {
                             val heartRateData = list.toJSONString()
                             val heartRateModel = kJson.decodeFromString<List<Models>>(heartRateData)
                             val heartRate =
-                                heartRateModel.firstOrNull { it.dataDes == "心率" }?.data?.toIntOrNull()
+                                heartRateModel.firstOrNull { it.dataDes == "Heart Rate" }?.data?.toIntOrNull()
                                     ?: return@hookAfterMethodByParameterTypes
-                            Log.d("心率: $heartRate")
+                            Log.d("Heart Rate: $heartRate")
                             if (heartRate <= 0) return@hookAfterMethodByParameterTypes
-                            Log.d("当前心率: $heartRate")
+                            Log.d("Current Heart Rate: $heartRate")
                             Ktor.sendHeartRate(heartRate)
                         }
 

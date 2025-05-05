@@ -5,10 +5,10 @@ import com.drake.serialize.serialize.serial
 
 
 /**
- * @项目名 : QDReaderHook
- * @作者 : MissYang
- * @创建时间 : 2025/1/10 16:56
- * @介绍 :
+ * @Project : QDReaderHook
+ * @Author : MissYang
+ * @Created : 2025/1/10 16:56
+ * @Description :
  */
 @SerializeConfig(mmapID = "heart_rate_hook")
 object Settings {
@@ -19,20 +19,20 @@ object Settings {
 
     var baseUrl by serial("")
 
-    // 获取状态
-    fun getStatus() = !isLogin && baseUrl.isBlank()
+    // Get status - returns true when configuration is valid, false when invalid
+    fun getStatus() = isLogin && baseUrl.isNotBlank()
 
-    // 获取上报索引 0:直链 1:Cookie
+    // Report index 0:DirectLink 1:Cookie
     var reportIndex by serial(0)
 
-    // 获取上报索引文本
+    // Get report index text
     fun getReportIndexText() = if (reportIndex == 0) {
-        "直链"
+        "Direct Link"
     } else {
         "Cookie"
     }
 
-    // 选中基础URL 0:香港 1:cloudflare
+    // Selected base URL 0:Hong Kong 1:Cloudflare
     var baseUrlIndex by serial(0)
     const val HK_BASE_URL = "https://public-heart-rate-api.xihan.website"
     const val CLOUD_FLARE_BASE_URL = "https://public-heart-rate-api.xihan.lat"
@@ -44,7 +44,7 @@ object Settings {
     }
 
     fun getSelectedBaseUrlText() = if (baseUrlIndex == 0) {
-        "香港"
+        "Hong Kong"
     } else {
         "CloudFlare"
     }

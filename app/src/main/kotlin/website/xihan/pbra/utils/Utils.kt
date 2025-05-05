@@ -69,9 +69,9 @@ fun getVersionCode(packageName: String) = try {
 inline fun <reified T> Any?.safeCast(): T? = this as? T
 
 fun Context.copyToClipboard(text: String) {
-    // 获取系统服务中的剪贴板管理器
+    // Get clipboard manager from system service
     val clipboardManager = this.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-    // 将文本创建为新的剪贴板数据，并设置到剪贴板中
+    // Create new clipboard data with the text and set it to the clipboard
     clipboardManager.setPrimaryClip(ClipData.newPlainText(null, text))
 }
 
@@ -121,7 +121,7 @@ fun Activity.showBaseUrlDialog() {
     val switch = CustomSwitchView(
         context = this,
         isChecked = innerNonSportReport,
-        text = "非运动模式上报",
+        text = "Non-sport mode reporting",
         onCheckedChangeListener = { isChecked, _ ->
             innerNonSportReport = isChecked
             enableNonSportReport = isChecked
@@ -136,10 +136,10 @@ fun Activity.showBaseUrlDialog() {
             index = if (isChecked) 0 else 1
             reportIndex = index
             view.updateText(getReportIndexText())
-            ToastUtil.show("切换成功")
+            ToastUtil.show("Switch successful")
         })
     val editText = CustomEditText(
-        context = this, value = innerBaseUrl, hint = "填入完整的地址"
+        context = this, value = innerBaseUrl, hint = "Enter the complete address"
     ) {
         innerBaseUrl = it
     }
@@ -153,25 +153,25 @@ fun Activity.showBaseUrlDialog() {
     }
 
     alertDialog {
-        title = "设置服务器地址"
+        title = "Set Server Address"
         message = buildString {
-            appendLine("请输入完整的数据上报接口地址")
-            appendLine("说明一下有两种方式上报方式,优先使用方法1")
-            appendLine("1. 直链模式:直接填入完整的地址")
-            appendLine("2. Cookie模式:需要登录")
-            appendLine("非运动模式上报原理是反射调用同步数据的方法,首次需要在设备页面获取到反射类，固定1分钟上报一次,心率监测那里频率推荐1分钟/次")
+            appendLine("Please enter the complete data reporting interface address")
+            appendLine("There are two reporting methods, method 1 is used first")
+            appendLine("1. Direct link mode: directly enter the complete address")
+            appendLine("2. Cookie mode: login required")
+            appendLine("Non-sport mode reporting works by reflectively calling the data synchronization method. Initial setup requires accessing the device page to get the reflection class. Reports are sent once per minute. For heart rate monitoring, the recommended frequency is once per minute.")
         }
 
         customView = linearLayout
         okButton {
             if (innerBaseUrl.isBlank()) {
-                ToastUtil.show("服务器地址不能为空")
+                ToastUtil.show("Server address cannot be empty")
             } else {
                 baseUrl = innerBaseUrl
-                ToastUtil.show("设置成功")
+                ToastUtil.show("Setup successful")
             }
         }
-        neutralPressed("登录/注册") {
+        neutralPressed("Login/Register") {
             showLoginOrRegisterDialog()
         }
         build()
@@ -191,20 +191,20 @@ fun Activity.showLoginOrRegisterDialog() {
             baseUrlIndex = if (isChecked) 1 else 0
             Settings.baseUrlIndex = baseUrlIndex
             view.updateText(getSelectedBaseUrlText())
-            ToastUtil.show("切换成功")
+            ToastUtil.show("Switch successful")
         })
     val editText = CustomEditText(
-        context = this, value = innerUserName, hint = "请输入账号3-50位"
+        context = this, value = innerUserName, hint = "Please enter account (3-50 characters)"
     ) {
         innerUserName = it
     }
     val editText2 = CustomEditText(
-        context = this, value = innerUserPass, hint = "请输入密码8-72位"
+        context = this, value = innerUserPass, hint = "Please enter password (8-72 characters)"
     ) {
         innerUserPass = it
     }
-    val loginText = "登录"
-    val registerText = "注册"
+    val loginText = "Login"
+    val registerText = "Register"
 
     val linearLayout = CustomLinearLayout(
         context = this, isAutoWidth = false, isAutoHeight = true
@@ -215,28 +215,28 @@ fun Activity.showLoginOrRegisterDialog() {
     }
 
     alertDialog {
-        title = "登录或注册"
+        title = "Login or Register"
         customView = linearLayout
 
         positiveButton(loginText) {
             if (innerUserName.isBlank() || innerUserPass.isBlank()) {
-                ToastUtil.show("账号和密码不能为空")
+                ToastUtil.show("Account and password cannot be empty")
             } else {
                 Ktor.login(userName = innerUserName, userPass = innerUserPass, type = loginText)
             }
         }
 
-        negativeButton("退出登录") {
+        negativeButton("Logout") {
             Settings.userName = ""
             Settings.userPass = ""
             Settings.isLogin = false
             context.getSharedPreferences("heart_rate_cookie_prefs", Context.MODE_PRIVATE)
                 .edit { clear() }
-            ToastUtil.show("退出登录成功")
+            ToastUtil.show("Logout successful")
         }
         neutralPressed(registerText) {
             if (innerUserName.isBlank() || innerUserPass.isBlank()) {
-                ToastUtil.show("账号和密码不能为空")
+                ToastUtil.show("Account and password cannot be empty")
             } else {
                 Ktor.login(userName = innerUserName, userPass = innerUserPass, type = registerText)
             }

@@ -18,13 +18,13 @@ internal const val NO_GETTER: String = "Property does not have a getter"
 internal fun noGetter(): Nothing = throw NotImplementedError(NO_GETTER)
 
 /**
- * 警报生成器工厂
+ * Alert Builder Factory
  * @suppress Generate Documentation
  */
 typealias AlertBuilderFactory<D> = (Context) -> AlertBuilder<D>
 
 /**
- * 应用程序兼容
+ * App Compat
  * @suppress Generate Documentation
  */
 val AppCompat: AlertBuilderFactory<DialogInterface> = { context ->
@@ -34,11 +34,11 @@ val AppCompat: AlertBuilderFactory<DialogInterface> = { context ->
 }
 
 /**
- * 警觉
+ * Alert
  * @since 7.9.354-1296
- * @param [message] 消息
- * @param [title] 标题
- * @param [block] 块
+ * @param [message] Message
+ * @param [title] Title
+ * @param [block] Block
  * @suppress Generate Documentation
  */
 fun Context.alert(
@@ -48,12 +48,12 @@ fun Context.alert(
 ) = alert(AppCompat, message, title, block)
 
 /**
- * 警觉
+ * Alert
  * @since 7.9.354-1296
- * @param [factory] 工厂
- * @param [message] 消息
- * @param [title] 标题
- * @param [block] 块
+ * @param [factory] Factory
+ * @param [message] Message
+ * @param [title] Title
+ * @param [block] Block
  * @suppress Generate Documentation
  */
 inline fun <D : DialogInterface> Context.alert(
@@ -68,18 +68,18 @@ inline fun <D : DialogInterface> Context.alert(
 }.show()
 
 /**
- * 警报对话框
+ * Alert Dialog
  * @since 7.9.354-1296
- * @param [block] 块
+ * @param [block] Block
  * @suppress Generate Documentation
  */
 fun Context.alertDialog(block: AlertBuilder<*>.() -> Unit) = alertDialog(AppCompat, block)
 
 /**
- * 警报对话框
+ * Alert Dialog
  * @since 7.9.354-1296
- * @param [factory] 工厂
- * @param [block] 块
+ * @param [factory] Factory
+ * @param [block] Block
  * @suppress Generate Documentation
  */
 inline fun <D : DialogInterface> Context.alertDialog(
@@ -88,12 +88,12 @@ inline fun <D : DialogInterface> Context.alertDialog(
 ) = factory(this).apply(block)
 
 /**
- * 多选选择器
+ * Multi Choice Selector
  * @since 7.9.354-1296
- * @param [items] 项目
- * @param [checkItems] 检查项目
- * @param [title] 标题
- * @param [onItemSelected] 在所选项目上
+ * @param [items] Items
+ * @param [checkItems] Check Items
+ * @param [title] Title
+ * @param [onItemSelected] On Item Selected
  * @suppress Generate Documentation
  */
 fun Context.multiChoiceSelector(
@@ -104,12 +104,12 @@ fun Context.multiChoiceSelector(
 ) = multiChoiceSelector(AppCompat, items, checkItems, title, onItemSelected)
 
 /**
- * 单选选择器
+ * Single Choice Selector
  * @since 7.9.354-1296
- * @param [items] 项目
- * @param [checkIndex] 检查索引
- * @param [title] 标题
- * @param [onItemSelected] 在所选项目上
+ * @param [items] Items
+ * @param [checkIndex] Check Index
+ * @param [title] Title
+ * @param [onItemSelected] On Item Selected
  * @suppress Generate Documentation
  */
 fun <T> Context.singleChoiceSelector(
@@ -120,13 +120,13 @@ fun <T> Context.singleChoiceSelector(
 ) = singleChoiceSelector(AppCompat, items, checkIndex, title, onItemSelected)
 
 /**
- * 多选选择器
+ * Multi Choice Selector
  * @since 7.9.354-1296
- * @param [factory] 工厂
- * @param [items] 项目
- * @param [checkItems] 检查项目
- * @param [title] 标题
- * @param [onItemSelected] 在所选项目上
+ * @param [factory] Factory
+ * @param [items] Items
+ * @param [checkItems] Check Items
+ * @param [title] Title
+ * @param [onItemSelected] On Item Selected
  * @suppress Generate Documentation
  */
 inline fun <D : DialogInterface> Context.multiChoiceSelector(
@@ -141,13 +141,13 @@ inline fun <D : DialogInterface> Context.multiChoiceSelector(
 }.show()
 
 /**
- * 单选选择器
+ * Single Choice Selector
  * @since 7.9.354-1296
- * @param [factory] 工厂
- * @param [items] 项目
- * @param [checkIndex] 检查索引
- * @param [title] 标题
- * @param [onItemSelected] 在所选项目上
+ * @param [factory] Factory
+ * @param [items] Items
+ * @param [checkIndex] Check Index
+ * @param [title] Title
+ * @param [onItemSelected] On Item Selected
  * @suppress Generate Documentation
  */
 inline fun <D : DialogInterface, T> Context.singleChoiceSelector(
@@ -162,29 +162,29 @@ inline fun <D : DialogInterface, T> Context.singleChoiceSelector(
 }.show()
 
 /**
- * ok按钮
+ * OK Button
  * @since 7.9.354-1296
- * @param [onClicked] 单击时
+ * @param [onClicked] On Clicked
  * @suppress Generate Documentation
  */
 fun AlertBuilder<*>.okButton(onClicked: (dialog: DialogInterface) -> Unit) =
     positiveButton(R.string.ok, onClicked)
 
 /**
- * 取消按钮
+ * Cancel Button
  * @since 7.9.354-1296
- * @param [onClicked] 单击时
+ * @param [onClicked] On Clicked
  * @suppress Generate Documentation
  */
 fun AlertBuilder<*>.cancelButton(onClicked: (dialog: DialogInterface) -> Unit = { it.dismiss() }) =
     negativeButton(R.string.cancel, onClicked)
 
 /**
- * 单选项目
+ * Single Choice Items
  * @since 7.9.354-1296
- * @param [items] 项目
- * @param [checkIndex] 检查索引
- * @param [onItemSelected] 在所选项目上
+ * @param [items] Items
+ * @param [checkIndex] Check Index
+ * @param [onItemSelected] On Item Selected
  * @suppress Generate Documentation
  */
 inline fun <T> AlertBuilder<*>.singleChoiceItems(
@@ -194,11 +194,11 @@ inline fun <T> AlertBuilder<*>.singleChoiceItems(
 }
 
 /**
- * 单选项目
+ * Single Choice Items
  * @since 7.9.354-1296
- * @param [items] 项目
- * @param [checkItem] 检查项目
- * @param [onItemSelected] 在所选项目上
+ * @param [items] Items
+ * @param [checkItem] Check Item
+ * @param [onItemSelected] On Item Selected
  * @suppress Generate Documentation
  */
 inline fun AlertBuilder<*>.singleChoiceItems(
@@ -211,11 +211,11 @@ inline fun AlertBuilder<*>.singleChoiceItems(
 }
 
 /**
- * 单选项目
+ * Single Choice Items
  * @since 7.9.354-1296
- * @param [items] 项目
- * @param [checkItem] 检查项目
- * @param [onItemSelected] 在所选项目上
+ * @param [items] Items
+ * @param [checkItem] Check Item
+ * @param [onItemSelected] On Item Selected
  * @suppress Generate Documentation
  */
 inline fun <T> AlertBuilder<*>.singleChoiceItems(
@@ -226,11 +226,11 @@ inline fun <T> AlertBuilder<*>.singleChoiceItems(
 }
 
 /**
- * 多选项目
+ * Multi Choice Items
  * @since 7.9.354-1296
- * @param [items] 项目
- * @param [checkItems] 检查项目
- * @param [onItemSelected] 在所选项目上
+ * @param [items] Items
+ * @param [checkItems] Check Items
+ * @param [onItemSelected] On Item Selected
  * @suppress Generate Documentation
  */
 inline fun <T> AlertBuilder<*>.multiChoiceItems(
@@ -242,9 +242,9 @@ inline fun <T> AlertBuilder<*>.multiChoiceItems(
 }
 
 /**
- * 取消时执行
+ * Execute On Cancel
  * @since 7.9.354-1296
- * @param [block] 块
+ * @param [block] Block
  * @suppress Generate Documentation
  */
 fun Dialog.doOnCancel(block: (DialogInterface) -> Unit) = apply {
@@ -252,9 +252,9 @@ fun Dialog.doOnCancel(block: (DialogInterface) -> Unit) = apply {
 }
 
 /**
- * 解雇时执行
+ * Execute On Dismiss
  * @since 7.9.354-1296
- * @param [block] 块
+ * @param [block] Block
  * @suppress Generate Documentation
  */
 fun Dialog.doOnDismiss(block: (DialogInterface) -> Unit) = apply {
@@ -262,9 +262,9 @@ fun Dialog.doOnDismiss(block: (DialogInterface) -> Unit) = apply {
 }
 
 /**
- * 表演中表演
+ * Execute On Show
  * @since 7.9.354-1296
- * @param [block] 块
+ * @param [block] Block
  * @suppress Generate Documentation
  */
 fun Dialog.doOnShow(block: (DialogInterface) -> Unit) = apply {
@@ -272,9 +272,9 @@ fun Dialog.doOnShow(block: (DialogInterface) -> Unit) = apply {
 }
 
 /**
- * 取消时执行
+ * Execute On Cancel
  * @since 7.9.354-1296
- * @param [block] 块
+ * @param [block] Block
  * @suppress Generate Documentation
  */
 fun DialogInterface.doOnCancel(block: (DialogInterface) -> Unit) = apply {
@@ -283,9 +283,9 @@ fun DialogInterface.doOnCancel(block: (DialogInterface) -> Unit) = apply {
 }
 
 /**
- * 解雇时执行
+ * Execute On Dismiss
  * @since 7.9.354-1296
- * @param [block] 块
+ * @param [block] Block
  * @suppress Generate Documentation
  */
 fun DialogInterface.doOnDismiss(block: (DialogInterface) -> Unit) = apply {
@@ -294,9 +294,9 @@ fun DialogInterface.doOnDismiss(block: (DialogInterface) -> Unit) = apply {
 }
 
 /**
- * 表演中表演
+ * Execute On Show
  * @since 7.9.354-1296
- * @param [block] 块
+ * @param [block] Block
  * @suppress Generate Documentation
  */
 fun DialogInterface.doOnShow(block: (DialogInterface) -> Unit) = apply {
@@ -305,8 +305,8 @@ fun DialogInterface.doOnShow(block: (DialogInterface) -> Unit) = apply {
 }
 
 /**
- * 警报生成器
- * 创建[AlertBuilder]
+ * Alert Builder
+ * Create [AlertBuilder]
  * @suppress Generate Documentation
  */
 interface AlertBuilder<out D : DialogInterface> {
@@ -383,8 +383,8 @@ interface AlertBuilder<out D : DialogInterface> {
 }
 
 /**
- * 警报对话框生成器
- * 创建[AlertDialogBuilder]
+ * Alert Dialog Builder
+ * Create [AlertDialogBuilder]
  * @suppress Generate Documentation
  */
 abstract class AlertDialogBuilder : AlertBuilder<AlertDialog> {
