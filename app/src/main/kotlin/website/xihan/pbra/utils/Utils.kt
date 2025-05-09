@@ -12,6 +12,7 @@ import androidx.core.content.edit
 import kotlinx.serialization.json.Json
 import website.xihan.pbra.utils.Settings.webhookUrl
 import website.xihan.pbra.utils.Settings.enableNonSportReport
+import website.xihan.pbra.utils.Settings.disableToastNotifications
 import java.lang.ref.WeakReference
 import kotlin.reflect.KProperty
 import kotlin.system.exitProcess
@@ -115,14 +116,24 @@ fun ImageView.setOnClickListener(activity: Activity) {
 fun Activity.showWebhookConfigDialog() {
     var innerWebhookUrl = webhookUrl
     var innerNonSportReport = enableNonSportReport
+    var innerDisableToastNotifications = disableToastNotifications
     
-    val switch = CustomSwitchView(
+    val nonSportSwitch = CustomSwitchView(
         context = this,
         isChecked = innerNonSportReport,
         text = "Non-sport mode reporting",
         onCheckedChangeListener = { isChecked, _ ->
             innerNonSportReport = isChecked
             enableNonSportReport = isChecked
+        })
+    
+    val toastSwitch = CustomSwitchView(
+        context = this,
+        isChecked = innerDisableToastNotifications,
+        text = "Disable toast notifications",
+        onCheckedChangeListener = { isChecked, _ ->
+            innerDisableToastNotifications = isChecked
+            disableToastNotifications = isChecked
         })
     
     val editText = CustomEditText(
@@ -136,7 +147,8 @@ fun Activity.showWebhookConfigDialog() {
     val linearLayout = CustomLinearLayout(
         context = this, isAutoWidth = false, isAutoHeight = true
     ).apply {
-        addView(switch)
+        addView(nonSportSwitch)
+        addView(toastSwitch)
         addView(editText)
     }
 

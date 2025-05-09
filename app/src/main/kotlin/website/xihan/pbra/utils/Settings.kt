@@ -21,5 +21,8 @@ object Settings {
     
     // Device ID
     var did by serial("")
+    
+    // Disable toast notifications when heart rate is detected
+    var disableToastNotifications by serial(false)
 }
 

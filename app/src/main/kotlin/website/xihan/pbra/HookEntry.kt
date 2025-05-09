@@ -21,6 +21,7 @@ import website.xihan.pbra.utils.MiHealthPackage.Companion.instance
 import website.xihan.pbra.utils.Models
 import website.xihan.pbra.utils.Settings.did
 import website.xihan.pbra.utils.Settings.enableNonSportReport
+import website.xihan.pbra.utils.Settings.disableToastNotifications
 import website.xihan.pbra.utils.ToastUtil
 import website.xihan.pbra.utils.appModule
 import website.xihan.pbra.utils.callMethodOrNullAs
@@ -171,14 +172,20 @@ class HookEntry : IXposedHookLoadPackage {
                                 if (heartRate != null && heartRate > 0) {
                                     Log.d("Found heart rate in sport mode: $heartRate")
                                     Ktor.sendHeartRate(heartRate)
-                                    ToastUtil.show("Heart rate detected: $heartRate")
+                                    if (!disableToastNotifications) {
+                                        ToastUtil.show("Heart rate detected: $heartRate")
+                                    }
                                 } else {
                                     Log.e("No valid heart rate found in sport data")
-                                    ToastUtil.show("No heart rate detected in sport data")
+                                    if (!disableToastNotifications) {
+                                        ToastUtil.show("No heart rate detected in sport data")
+                                    }
                                 }
                             } catch (e: Exception) {
                                 Log.e("Error processing sport heart rate: ${e.message}")
-                                ToastUtil.show("Error processing sport heart rate: ${e.message}")
+                                if (!disableToastNotifications) {
+                                    ToastUtil.show("Error processing sport heart rate: ${e.message}")
+                                }
                             }
                         }
 

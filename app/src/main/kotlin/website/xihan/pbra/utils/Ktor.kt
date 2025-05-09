@@ -24,6 +24,7 @@ import website.xihan.pbra.HookEntry.Companion.mDeviceContact
 import website.xihan.pbra.utils.Settings.webhookUrl
 import website.xihan.pbra.utils.Settings.did
 import website.xihan.pbra.utils.Settings.enableNonSportReport
+import website.xihan.pbra.utils.Settings.disableToastNotifications
 import kotlin.time.Duration.Companion.minutes
 
 /**
@@ -68,7 +69,9 @@ object Ktor : KoinComponent {
         // Don't send if URL is blank
         if (webhookUrl.isBlank()) {
             Log.e("Heart rate not sent: webhookUrl is blank")
-            ToastUtil.show("Failed to send heart rate: Webhook URL not configured")
+            if (!disableToastNotifications) {
+                ToastUtil.show("Failed to send heart rate: Webhook URL not configured")
+            }
             return@ioThread
         }
         
@@ -87,14 +90,18 @@ object Ktor : KoinComponent {
             }
             Log.d("Server response: ${response.status}, ${response.bodyAsText()}")
             if (response.status.value !in 200..299) {
-                ToastUtil.show("Server error: ${response.status} - Failed to send heart rate")
+                if (!disableToastNotifications) {
+                    ToastUtil.show("Server error: ${response.status} - Failed to send heart rate")
+                }
             } else {
                 // Only update the last heart rate when successfully sent
                 lastHeartRate = heartRate
             }
         } catch (e: Exception) {
             Log.e("Failed to send heart rate: ${e.message}")
-            ToastUtil.show("Network error: Failed to send heart rate - ${e.message}")
+            if (!disableToastNotifications) {
+                ToastUtil.show("Network error: Failed to send heart rate - ${e.message}")
+            }
         }
     }
 
@@ -123,7 +130,10 @@ object Ktor : KoinComponent {
                     if (mDeviceContact?.get() != null) {
                         mDeviceContact?.get()?.callMethod("syncData", did, false)
                     } else {
-                        ToastUtil.show("Failed to get device. Please go to the device page to verify connection and sync data once")
+                        Log.e("Failed to get device contact for periodic sending")
+                        if (!disableToastNotifications) {
+                            ToastUtil.show("Failed to get device. Please go to the device page to verify connection and sync data once")
+                        }
                     }
                     delay(1.minutes)
                 }
