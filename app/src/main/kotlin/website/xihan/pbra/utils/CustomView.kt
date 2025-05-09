@@ -1,5 +1,7 @@
 package website.xihan.pbra.utils
 
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
 import android.graphics.Typeface
 import android.view.View
@@ -160,10 +162,9 @@ class CustomTextView(
             }
             setOnClickListener { onClickAction() }
             setOnLongClickListener {
-                context.apply {
-                    copyToClipboard(text.toString())
-                    ToastUtil.show("已复制到剪贴板")
-                }
+                val clipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                clipboardManager.setPrimaryClip(ClipData.newPlainText("text", text))
+                ToastUtil.show("Copied to clipboard")
                 true
             }
 

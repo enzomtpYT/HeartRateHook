@@ -33,12 +33,3 @@ data class HeartRateModel(
         var heartRate: Int = 0
     )
 }
-
-@Keep
-@Serializable
-data class LoginModel(
-    @SerialName("username")
-    var username: String = "",
-    @SerialName("password")
-    var password: String = ""
-)

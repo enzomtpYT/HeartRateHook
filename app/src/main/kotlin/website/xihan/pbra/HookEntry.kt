@@ -21,6 +21,7 @@ import website.xihan.pbra.utils.MiHealthPackage.Companion.instance
 import website.xihan.pbra.utils.Models
 import website.xihan.pbra.utils.Settings.did
 import website.xihan.pbra.utils.Settings.enableNonSportReport
+import website.xihan.pbra.utils.ToastUtil
 import website.xihan.pbra.utils.appModule
 import website.xihan.pbra.utils.callMethodOrNullAs
 import website.xihan.pbra.utils.from
@@ -98,6 +99,7 @@ class HookEntry : IXposedHookLoadPackage {
                                             if (sportMode) {
                                                 sportMode = false
                                                 startPeriodicSending()
+                                                resetLastHeartRate() // Reset lastHeartRate when exiting sport mode
                                             }
                                         }
                                         val heartRate = it.getIntFieldOrNull("hr")
@@ -117,21 +119,67 @@ class HookEntry : IXposedHookLoadPackage {
                                 if (!sportMode) {
                                     sportMode = true
                                     stopPeriodicSending()
+                                    resetLastHeartRate() // Reset lastHeartRate when entering sport mode
                                 }
                             }
                             val sportingData =
                                 param.args.firstOrNull() ?: return@hookAfterMethodByParameterTypes
+                            
+                            // Log the entire sportingData for debugging
+                            Log.d("Sport data received: ${sportingData}")
+                            
                             val list = sportingData.getObjectFieldOrNullAs<List<*>>("list")
-                                ?: return@hookAfterMethodByParameterTypes
-                            val heartRateData = list.toJSONString()
-                            val heartRateModel = kJson.decodeFromString<List<Models>>(heartRateData)
-                            val heartRate =
-                                heartRateModel.firstOrNull { it.dataDes == "Heart Rate" }?.data?.toIntOrNull()
-                                    ?: return@hookAfterMethodByParameterTypes
-                            Log.d("Heart Rate: $heartRate")
-                            if (heartRate <= 0) return@hookAfterMethodByParameterTypes
-                            Log.d("Current Heart Rate: $heartRate")
-                            Ktor.sendHeartRate(heartRate)
+                            if (list == null) {
+                                Log.e("Failed to get list from sportingData")
+                                return@hookAfterMethodByParameterTypes
+                            }
+                            
+                            // Log the size of the list
+                            Log.d("Sport data list size: ${list.size}")
+                            
+                            try {
+                                val heartRateData = list.toJSONString()
+                                Log.d("Sport data JSON: ${heartRateData}")
+                                
+                                // Try various ways to find heart rate data
+                                val heartRateModel = kJson.decodeFromString<List<Models>>(heartRateData)
+                                
+                                // Option 1: Look for exact match "Heart Rate"
+                                var heartRate = heartRateModel.firstOrNull { it.dataDes == "Heart Rate" }?.data?.toIntOrNull()
+                                
+                                // Option 2: Look for case insensitive match if Option 1 fails
+                                if (heartRate == null) {
+                                    heartRate = heartRateModel.firstOrNull { 
+                                        it.dataDes.equals("Heart Rate", ignoreCase = true) || 
+                                        it.dataDes.contains("heart", ignoreCase = true) 
+                                    }?.data?.toIntOrNull()
+                                }
+                                
+                                // Option 3: Try to find by looking at all data items
+                                if (heartRate == null) {
+                                    Log.d("Couldn't find heart rate by name, showing all items:")
+                                    heartRateModel.forEach { model ->
+                                        Log.d("DataDes: '${model.dataDes}', data: '${model.data}', other: '${model.other}'")
+                                    }
+                                    
+                                    // Assuming the heart rate might be in another field, try to find a numeric value that looks like heart rate
+                                    heartRate = heartRateModel.mapNotNull { 
+                                        it.data.toIntOrNull() 
+                                    }.firstOrNull { it in 30..220 } // Normal heart rate range
+                                }
+                                
+                                if (heartRate != null && heartRate > 0) {
+                                    Log.d("Found heart rate in sport mode: $heartRate")
+                                    Ktor.sendHeartRate(heartRate)
+                                    ToastUtil.show("Heart rate detected: $heartRate")
+                                } else {
+                                    Log.e("No valid heart rate found in sport data")
+                                    ToastUtil.show("No heart rate detected in sport data")
+                                }
+                            } catch (e: Exception) {
+                                Log.e("Error processing sport heart rate: ${e.message}")
+                                ToastUtil.show("Error processing sport heart rate: ${e.message}")
+                            }
                         }
 
                         aboutActivity?.hookAfterMethod("onCreate", Bundle::class.java) { param ->

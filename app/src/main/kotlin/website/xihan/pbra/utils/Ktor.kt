@@ -18,19 +18,13 @@ import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.isActive
-import org.json.JSONObject
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import website.xihan.pbra.HookEntry.Companion.mDeviceContact
-import website.xihan.pbra.utils.Settings.baseUrl
+import website.xihan.pbra.utils.Settings.webhookUrl
 import website.xihan.pbra.utils.Settings.did
-import website.xihan.pbra.utils.Settings.getSelectedBaseUrl
-import website.xihan.pbra.utils.Settings.getStatus
-import website.xihan.pbra.utils.Settings.isLogin
-import website.xihan.pbra.utils.Settings.reportIndex
+import website.xihan.pbra.utils.Settings.enableNonSportReport
 import kotlin.time.Duration.Companion.minutes
-import kotlin.time.Duration.Companion.seconds
-
 
 /**
  * @项目名 : HeartRateHook
@@ -47,92 +41,89 @@ object Ktor : KoinComponent {
         Channel.BUFFERED,
         onBufferOverflow = BufferOverflow.DROP_OLDEST
     )
-
-    fun login(userName: String, userPass: String, type: String) = ioThread {
-        Log.d("$type: $userName, $userPass, $baseUrl")
-        httpClient.post("${getSelectedBaseUrl()}/${if (type == "登录") "login" else "register"}") {
-            contentType(ContentType.Application.Json)
-            setBody(LoginModel(userName, userPass))
-        }.let { response ->
-            val message = JSONObject(response.bodyAsText()).optString("message")
-            Log.d("${type}结果: ${response.status}, $message")
-            if (response.status.value == 200) {
-                Settings.userName = userName
-                Settings.userPass = userPass
-                isLogin = true
-                ToastUtil.show(message)
-            } else {
-                isLogin = false
-                Log.e("${type}失败: ${response.status}, ${response.bodyAsText()}")
-            }
-        }
-    }
-
+    
+    // Track the last reported heart rate to avoid sending duplicates
+    private var lastHeartRate: Int = -1
 
     @OptIn(FlowPreview::class)
     fun startHeartRateUpdates() = ioThread {
         heartRateChannel
             .consumeAsFlow()
-            .debounce(250) // Debounce 等待 250ms 的非活动状态，然后再处理下一个值
+            .debounce(250) // Debounce for 250ms of inactivity before processing the next value
             .catch {
-                Log.e("协程流异常: ${it.message}")
+                Log.e("Flow exception: ${it.message}")
             }
             .onEach(::updateHeartRate)
             .conflate()
-            .collect() //收集流
+            .collect()
     }
 
-
     fun updateHeartRate(heartRate: Int) = ioThread {
-        // Don't send if not logged in OR URL is blank
-        if (!isLogin || baseUrl.isBlank()) {
-            Log.e("Heart rate not sent: isLogin=$isLogin, baseUrl=$baseUrl")
+        // Skip if heart rate hasn't changed from last reported value
+        if (heartRate == lastHeartRate) {
+            Log.d("Heart rate unchanged ($heartRate), skipping report")
             return@ioThread
         }
         
-        val url = if (reportIndex == 0) {
-            // Ensure baseUrl starts with http/https
-            if (!baseUrl.startsWith("http://") && !baseUrl.startsWith("https://")) {
-                "https://$baseUrl"
-            } else {
-                baseUrl
-            }
-        } else {
-            "${getSelectedBaseUrl()}/receive_data"
+        // Don't send if URL is blank
+        if (webhookUrl.isBlank()) {
+            Log.e("Heart rate not sent: webhookUrl is blank")
+            ToastUtil.show("Failed to send heart rate: Webhook URL not configured")
+            return@ioThread
         }
         
-        Log.d("Sending heart rate: $heartRate to URL: $url")
+        // Ensure webhook URL starts with http/https
+        val url = if (!webhookUrl.startsWith("http://") && !webhookUrl.startsWith("https://")) {
+            "https://$webhookUrl"
+        } else {
+            webhookUrl
+        }
+        
+        Log.d("Sending heart rate: $heartRate (changed from $lastHeartRate) to URL: $url")
         try {
             val response = httpClient.post(url) {
                 contentType(ContentType.Application.Json)
                 setBody(HeartRateModel(HeartRateModel.DataModel(heartRate)))
             }
             Log.d("Server response: ${response.status}, ${response.bodyAsText()}")
+            if (response.status.value !in 200..299) {
+                ToastUtil.show("Server error: ${response.status} - Failed to send heart rate")
+            } else {
+                // Only update the last heart rate when successfully sent
+                lastHeartRate = heartRate
+            }
         } catch (e: Exception) {
             Log.e("Failed to send heart rate: ${e.message}")
+            ToastUtil.show("Network error: Failed to send heart rate - ${e.message}")
         }
     }
 
+    // Reset last heart rate when entering/exiting sport mode to ensure first reading is sent
+    fun resetLastHeartRate() {
+        lastHeartRate = -1
+        Log.d("Last heart rate value reset")
+    }
 
     fun sendHeartRate(heartRate: Int) = ioThread {
-        Log.d("发送心率: $heartRate")
+        Log.d("Sending heart rate: $heartRate")
         heartRateChannel.send(heartRate)
     }
 
-
     fun startPeriodicSending() {
+        if (!enableNonSportReport) return
+        
+        resetLastHeartRate() // Reset when starting periodic mode
+        
         periodicSendingJob?.cancel()
         periodicSendingJob = ioThread {
             try {
                 Log.d("startPeriodicSending")
-//                val uuid = UUID.randomUUID().toString()
                 while (isActive) {
-//                    Log.d("uuid: $uuid")
                     if (sportMode) break
                     if (mDeviceContact?.get() != null) {
                         mDeviceContact?.get()?.callMethod("syncData", did, false)
                     } else {
-                        ToastUtil.show("获取设备失败,需要去设备页面确定连接正常并同步一次数据")
+                        ToastUtil.show("Failed to get device. Please go to the device page to verify connection and sync data once")
                     }
                     delay(1.minutes)
                 }

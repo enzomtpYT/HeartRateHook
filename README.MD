@@ -1,51 +1,99 @@
-![HeartRateHook](https://socialify.git.ci/xihan123/HeartRateHook/image?description=1&font=Inter&language=1&name=1&owner=1&pattern=Plus&theme=Light)
+![HeartRateHook](https://socialify.git.ci/enzomtpYT/HeartRateHook/image?font=Inter&forks=1&issues=1&language=1&name=1&owner=1&pattern=Solid&pulls=1&stargazers=1&theme=Auto)
 
 ![above](https://img.shields.io/badge/Android-8.0%20or%20above-brightgreen.svg)
 
-[![license](https://img.shields.io/github/license/xihan123/HeartRateHook.svg)](https://www.gnu.org/licenses/gpl-3.0.html)
+[![license](https://img.shields.io/github/license/enzomtpYT/HeartRateHook.svg)](https://www.gnu.org/licenses/gpl-3.0.html)
 
 ---
 
 # HeartRateHook
 
-## 项目简介
+## Project Overview
 
-HeartRateHook 是一个用于监控和更新心率数据的项目
+HeartRateHook is a project for monitoring and reporting heart rate data from Mi Health app to a webhook URL.
 
-本项目是 [miband-heart-rate-bot](https://github.com/xihan123/miband-heart-rate-bot) / [heart-rate-server](https://github.com/xihan123/heart-rate-server) 配套的 Android
-项目
+This project is a fork of [xihan123/HeartRateHook](https://github.com/xihan123/HeartRateHook) with modifications to simplify the data reporting process.
 
-## 适配应用
+## Supported Applications
 
-* 小米运动健康-3.32.0 +
+* Mi Health (Mi Fitness) version 3.32.0+
 
-## 主要功能
+## Main Features
 
-* 监听心率数据更新
-* 去抖处理心率数据
-* 通过 API 接口发送心率数据
+* Monitor heart rate data updates in real-time
+* Debounce heart rate data to reduce noise
+* Send heart rate data to webhook URL
+* Only send data when heart rate values change
+* Support for both sport mode and non-sport mode monitoring
 
-## 项目结构
+## Build Information
 
-* `keystore.properties`: 包含签名配置，如签名密码
-* `local.properties`: 包含本地配置，如 Android SDK 路径
+### Requirements
 
-## 如何使用
+* Android SDK 35 (target)
+* Android SDK 26 (minimum) / Android 8.0+
+* JDK 17
+* Gradle 8.0+
 
-1. 勾选作用域
+### Build Instructions
 
-2. 在 [适配的应用](#适配应用) -> 关于 -> 单击图标 -> 弹出对话框 -> 设置服务器地址/登录/注册
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/enzomtpYT/HeartRateHook.git
+   cd HeartRateHook
+   ```
 
-## 贡献
+2. Create a `keystore.properties` file in the project root with the following content:
+   ```properties
+   storeFile=your_keystore_path.jks
+   storePassword=your_store_password
+   keyAlias=your_key_alias
+   keyPassword=your_key_password
+   ```
 
-欢迎提交问题和请求，也欢迎贡献代码，请 fork 本项目并提交 pull request
+3. Build the project:
+   ```bash
+   ./gradlew assembleRelease
+   ```
 
-## 许可证
+4. To install directly to a connected device:
+   ```bash
+   ./gradlew installDebug
+   ```
+   This will automatically stop and restart the Mi Health app.
 
-本项目采用 GPLV3.0 许可证，详细信息请参阅 LICENSE 文件
+### Available Build Variants
+
+The project generates multiple APK variants for different CPU architectures:
+
+* `arm32` - For 32-bit ARM devices
+* `arm64` - For 64-bit ARM devices
+* `armAll` - For both 32-bit and 64-bit ARM devices
+* `universal` - For all supported architectures (ARM and x86)
+
+## Project Structure
+
+* `keystore.properties`: Contains signing configurations like signature passwords
+* `local.properties`: Contains local configurations like Android SDK paths
+
+## How to Use
+
+1. Select the module scope in your Xposed framework (LSPosed, EdXposed, etc.)
+
+2. In the supported app (Mi Health) -> About -> Click on the icon -> Configure webhook URL in the dialog box
+
+3. Make sure you visit the device page at least once to establish proper connection
+
+## Contributing
+
+Issues and pull requests are welcome. Please fork this project and submit pull requests with your contributions.
+
+## License
+
+This project is licensed under the GNU General Public License v3.0. See the LICENSE file for more details.
 
 ---
 
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=xihan123/HeartRateHook&type=Date)](https://star-history.com/#xihan123/HeartRateHook&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=enzomtpYT/HeartRateHook&type=Date)](https://star-history.com/#enzomtpYT/HeartRateHook&Date)

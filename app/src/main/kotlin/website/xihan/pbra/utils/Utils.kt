@@ -10,18 +10,14 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.core.content.edit
 import kotlinx.serialization.json.Json
-import website.xihan.pbra.utils.Settings.baseUrl
+import website.xihan.pbra.utils.Settings.webhookUrl
 import website.xihan.pbra.utils.Settings.enableNonSportReport
-import website.xihan.pbra.utils.Settings.getReportIndexText
-import website.xihan.pbra.utils.Settings.getSelectedBaseUrlText
-import website.xihan.pbra.utils.Settings.reportIndex
 import java.lang.ref.WeakReference
 import kotlin.reflect.KProperty
 import kotlin.system.exitProcess
 
 val kJson = Json {
     isLenient = true
-//    prettyPrint = true
     encodeDefaults = true
     ignoreUnknownKeys = true
     coerceInputValues = true
@@ -30,13 +26,14 @@ val kJson = Json {
 class Weak<T>(val initializer: () -> T?) {
     private var weakReference: WeakReference<T?>? = null
 
-    operator fun getValue(thisRef: Any?, property: KProperty<*>) = weakReference?.get() ?: let {
-        weakReference = WeakReference(initializer())
-        weakReference
-    }?.get()
-
-    operator fun setValue(thisRef: Any?, property: KProperty<*>, value: T?) {
-        weakReference = WeakReference(value)
+    operator fun getValue(thisRef: Any?, property: KProperty<*>): T? {
+        val value = weakReference?.get()
+        if (value == null) {
+            val newValue = initializer()
+            weakReference = WeakReference(newValue)
+            return newValue
+        }
+        return value
     }
 }
 
@@ -111,13 +108,14 @@ fun Activity.restartApplication() = packageManager.getLaunchIntentForPackage(pac
 
 fun ImageView.setOnClickListener(activity: Activity) {
     setOnClickListener {
-        activity.showBaseUrlDialog()
+        activity.showWebhookConfigDialog()
     }
 }
 
-fun Activity.showBaseUrlDialog() {
-    var innerBaseUrl = baseUrl
+fun Activity.showWebhookConfigDialog() {
+    var innerWebhookUrl = webhookUrl
     var innerNonSportReport = enableNonSportReport
+    
     val switch = CustomSwitchView(
         context = this,
         isChecked = innerNonSportReport,
@@ -126,123 +124,40 @@ fun Activity.showBaseUrlDialog() {
             innerNonSportReport = isChecked
             enableNonSportReport = isChecked
         })
-
-    var index = reportIndex
-    val postSwitch = CustomSwitchView(
-        context = this,
-        isChecked = index == 0,
-        text = getReportIndexText(),
-        onCheckedChangeListener = { isChecked, view ->
-            index = if (isChecked) 0 else 1
-            reportIndex = index
-            view.updateText(getReportIndexText())
-            ToastUtil.show("Switch successful")
-        })
+    
     val editText = CustomEditText(
-        context = this, value = innerBaseUrl, hint = "Enter the complete address"
+        context = this, 
+        value = innerWebhookUrl, 
+        hint = "Enter webhook URL (https://example.com/webhook)"
     ) {
-        innerBaseUrl = it
+        innerWebhookUrl = it
     }
 
     val linearLayout = CustomLinearLayout(
         context = this, isAutoWidth = false, isAutoHeight = true
     ).apply {
         addView(switch)
-        addView(postSwitch)
         addView(editText)
     }
 
     alertDialog {
-        title = "Set Server Address"
+        title = "Configure Webhook"
         message = buildString {
-            appendLine("Please enter the complete data reporting interface address")
-            appendLine("There are two reporting methods, method 1 is used first")
-            appendLine("1. Direct link mode: directly enter the complete address")
-            appendLine("2. Cookie mode: login required")
-            appendLine("Non-sport mode reporting works by reflectively calling the data synchronization method. Initial setup requires accessing the device page to get the reflection class. Reports are sent once per minute. For heart rate monitoring, the recommended frequency is once per minute.")
+            appendLine("Please enter the complete webhook URL where heart rate data will be sent")
+            appendLine("Format example: https://example.com/webhook")
+            appendLine("Non-sport mode reporting works by reflectively calling the data synchronization method. Initial setup requires accessing the device page to get the reflection class. Reports are sent once per minute.")
         }
 
         customView = linearLayout
         okButton {
-            if (innerBaseUrl.isBlank()) {
-                ToastUtil.show("Server address cannot be empty")
+            if (innerWebhookUrl.isBlank()) {
+                ToastUtil.show("Webhook URL cannot be empty")
             } else {
-                baseUrl = innerBaseUrl
-                ToastUtil.show("Setup successful")
-            }
-        }
-        neutralPressed("Login/Register") {
-            showLoginOrRegisterDialog()
-        }
-        build()
-        show()
-    }
-}
-
-fun Activity.showLoginOrRegisterDialog() {
-    var innerUserName = Settings.userName
-    var innerUserPass = Settings.userPass
-    var baseUrlIndex = Settings.baseUrlIndex
-    val baseUrlSwitch = CustomSwitchView(
-        context = this,
-        isChecked = baseUrlIndex == 1,
-        text = getSelectedBaseUrlText(),
-        onCheckedChangeListener = { isChecked, view ->
-            baseUrlIndex = if (isChecked) 1 else 0
-            Settings.baseUrlIndex = baseUrlIndex
-            view.updateText(getSelectedBaseUrlText())
-            ToastUtil.show("Switch successful")
-        })
-    val editText = CustomEditText(
-        context = this, value = innerUserName, hint = "Please enter account (3-50 characters)"
-    ) {
-        innerUserName = it
-    }
-    val editText2 = CustomEditText(
-        context = this, value = innerUserPass, hint = "Please enter password (8-72 characters)"
-    ) {
-        innerUserPass = it
-    }
-    val loginText = "Login"
-    val registerText = "Register"
-
-    val linearLayout = CustomLinearLayout(
-        context = this, isAutoWidth = false, isAutoHeight = true
-    ).apply {
-        addView(baseUrlSwitch)
-        addView(editText)
-        addView(editText2)
-    }
-
-    alertDialog {
-        title = "Login or Register"
-        customView = linearLayout
-
-        positiveButton(loginText) {
-            if (innerUserName.isBlank() || innerUserPass.isBlank()) {
-                ToastUtil.show("Account and password cannot be empty")
-            } else {
-                Ktor.login(userName = innerUserName, userPass = innerUserPass, type = loginText)
-            }
-        }
-
-        negativeButton("Logout") {
-            Settings.userName = ""
-            Settings.userPass = ""
-            Settings.isLogin = false
-            context.getSharedPreferences("heart_rate_cookie_prefs", Context.MODE_PRIVATE)
-                .edit { clear() }
-            ToastUtil.show("Logout successful")
-        }
-        neutralPressed(registerText) {
-            if (innerUserName.isBlank() || innerUserPass.isBlank()) {
-                ToastUtil.show("Account and password cannot be empty")
-            } else {
-                Ktor.login(userName = innerUserName, userPass = innerUserPass, type = registerText)
+                webhookUrl = innerWebhookUrl
+                ToastUtil.show("Configuration saved successfully")
             }
         }
         build()
         show()
     }
-
 }
